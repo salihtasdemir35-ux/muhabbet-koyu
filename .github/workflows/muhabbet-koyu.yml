@@ -53,7 +53,9 @@ jobs:
       - name: Capacitor Android projesi
         run: |
           npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
-          npx cap init "Muhabbet Koyu" com.muhabbetkoyu.app --web-dir dist
+          rm -f capacitor.config.ts
+          printf '{\n  "appId": "com.muhabbetkoyu.app",\n  "appName": "Muhabbet Koyu",\n  "webDir": "dist",\n  "server": { "androidScheme": "https" },\n  "android": { "allowMixedContent": true }\n}\n' > capacitor.config.json
+          cat capacitor.config.json
           npx cap add android
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' $M
