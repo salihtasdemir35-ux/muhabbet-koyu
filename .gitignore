@@ -4,3 +4,6 @@ data/
 android/
 *.log
 .env
+cloudflared.exe
+tunnel.log
+.wrangler/

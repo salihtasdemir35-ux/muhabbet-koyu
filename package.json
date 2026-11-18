@@ -9,7 +9,9 @@
     "build": "vite build --config client/vite.config.ts",
     "start": "tsx server/index.ts",
     "serve": "npm run build && npm start",
-    "test:server": "tsx tests/server.test.ts"
+    "test:server": "tsx tests/server.test.ts",
+    "deploy": "npm run build && wrangler deploy",
+    "cf:dev": "npm run build && wrangler dev"
   },
   "engines": {
     "node": ">=18"
@@ -27,6 +29,7 @@
     "@types/pg": "^8.23.1",
     "@types/three": "^0.187.0",
     "@types/ws": "^8.18.2",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.164.0"
   }
 }

@@ -12,7 +12,7 @@ import {
   fishSpotAt, TREES, GRILL, BAR, FRIDGE, SHOWER, TV, WORLD_BOUNDS, inPool, waterAt, SEATS, DOORS, floorY, WC, inVilla,
 } from '../shared/world';
 import { Accounts, Profile, uid, sanitizeLook, weekKey } from './accounts';
-import type { Store } from './store';
+import type { StoreLike as Store } from './hub';
 
 export interface Client {
   id: string; prof: Profile | null; room: Room | null; send(o: any): void; close(): void;

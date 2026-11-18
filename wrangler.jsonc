@@ -1,0 +1,19 @@
+{
+  // Cloudflare Workers ayarı – ücretsiz plan (Workers Free + SQLite Durable Object)
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "muhabbet-koyu",
+  "main": "server/worker.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/ws", "/health", "/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "GAME", "class_name": "GameDO" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GameDO"] }],
+  "observability": { "enabled": true }
+}

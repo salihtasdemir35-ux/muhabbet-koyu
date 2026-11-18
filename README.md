@@ -18,26 +18,30 @@ Tek kod tabanı: **Web tarayıcısı, Windows, Android (APK + tarayıcı), iPhon
 3. `muhabbet-koyu.yml` dosyasının içeriğini kopyalayıp yapıştır → **Commit changes**.
 4. **Add file → Upload files** → `MuhabbetKoyu.zip` dosyasını sürükle → **Commit changes**.
 5. **Actions** sekmesinde "Zip açıldı" işi 1 dakikada biter. Depoyu yenile: tüm klasörler açılmış, zip silinmiş olur. ✅
-### 2. Sunucuyu ücretsiz yayına al (Render.com)
-1. render.com → GitHub ile giriş yap.
-2. **New +** → **Blueprint** → `muhabbet-koyu` deposunu seç → **Apply**. (`render.yaml` her şeyi otomatik ayarlar.)
-3. 3–5 dakika sonra adresin hazır olur: `https://muhabbet-koyu-xxxx.onrender.com` — bu adresi açınca oyun çalışır. Bilgisayar, telefon, tablet: hepsi bu adresten oynar.
-
-> **Kalıcı kayıt için (önerilir):** Render ücretsiz planında disk kalıcı değildir. neon.tech'te ücretsiz PostgreSQL aç → bağlantı adresini kopyala → Render'da servis → **Environment** → `DATABASE_URL` olarak yapıştır. Para, envanter ve karakterler kalıcı olur.
-> Render ücretsiz sunucusu 15 dk boş kalınca uyur; ilk girişte ~30 sn uyanma süresi olur.
+### 2. Sunucuyu ücretsiz yayına al (Cloudflare Workers – kart gerekmez)
+1. dash.cloudflare.com → giriş yap → sol menü **Compute (Workers)** → **Workers & Pages** → **Create** (Oluştur).
+2. **Import a repository** (Git deposunu içe aktar) → **GitHub** → `muhabbet-koyu` deposunu seç.
+3. Ayarlar: Project name `muhabbet-koyu` · Build command `npm run build` · Deploy command `npx wrangler deploy` → **Create and deploy**.
+4. 2–3 dakika sonra adres hazır: `https://muhabbet-koyu.KULLANICI.workers.dev` — bu adresi açınca oyun çalışır.
+> Hesaplar, paralar ve envanter Cloudflare Durable Object'te kalıcı saklanır. GitHub'a her yeni yüklemede Cloudflare kendiliğinden günceller.
 
 ### 3. Android APK (isteğe bağlı)
 1. GitHub deposu → **Settings** → **Secrets and variables** → **Actions** → **Variables** sekmesi → **New repository variable**
-   - Ad: `SERVER_URL` · Değer: `wss://muhabbet-koyu-xxxx.onrender.com/ws` (kendi Render adresin, başı `wss://`, sonu `/ws`)
+   - Ad: `SERVER_URL` · Değer: `wss://muhabbet-koyu.KULLANICI.workers.dev/ws` (kendi Cloudflare adresin, başı `wss://`, sonu `/ws`)
 2. **Actions** sekmesi → **Muhabbet Koyu** → **Run workflow**.
 3. ~8 dakika sonra işin içinde **Artifacts → MuhabbetKoyu-APK** indir, zip'i aç, `app-debug.apk`'yı telefona kur ("bilinmeyen kaynaklar" iznini ver).
 
 ### 4. iPhone / iPad
-Safari'de Render adresini aç → Paylaş → **Ana Ekrana Ekle**. Tam ekran uygulama gibi çalışır, mikrofon da çalışır.
+Safari'de Cloudflare adresini aç → Paylaş → **Ana Ekrana Ekle**. Tam ekran uygulama gibi çalışır, mikrofon da çalışır.
 
-### 5. Windows'ta kendi bilgisayarında çalıştırma
-Node.js 22'yi kur (nodejs.org) → klasörde `START_WINDOWS.bat`'a çift tıkla → `http://localhost:8080`.
-(Aynı Wi-Fi'deki arkadaşlar `http://BILGISAYAR-IP:8080` ile girebilir; ancak tarayıcılar mikrofonu yalnızca **https** ya da localhost'ta açar, bu yüzden sesli sohbet için Render adresini kullanın.)
+### 5. Kendi Windows bilgisayarında ücretsiz sunucu (kart/hesap gerekmez) ⭐
+1. nodejs.org/tr → **LTS** sürümünü kur.
+2. Bu zip'i bilgisayarında bir klasöre çıkar (ör. `Belgeler\MuhabbetKoyu`).
+3. `START_WINDOWS.bat` dosyasına çift tıkla. İlk seferde paketler ve Cloudflare tüneli iner (2–4 dk).
+4. Ekranda yeşil **OYUN ADRESİ** (`https://....trycloudflare.com`) çıkar, panoya kopyalanır ve tarayıcıda açılır. Bu adresi WhatsApp'tan arkadaşlarına gönder; telefon, tablet, bilgisayar herkes tarayıcıdan oynar (mikrofon dahil).
+5. Bilgisayar açık ve pencereler açık kaldıkça oyun çalışır. Kayıtlar `data` klasöründe kalıcıdır.
+> Adres her başlatmada değişir. APK kullanan arkadaşlar yeni adresi uygulamada **Ayarlar → Gelişmiş → Sunucu adresi** kısmına `wss://....trycloudflare.com/ws` olarak girer (ekranda sarı satırda hazır yazar).
+> Windows güvenlik duvarı sorarsa **İzin ver** de. Oyun sürerken bilgisayarın uyku moduna girmemesi için Ayarlar → Güç → Uyku: **Hiçbir zaman** yap.
 
 ---
 
@@ -64,9 +68,9 @@ Node.js 22'yi kur (nodejs.org) → klasörde `START_WINDOWS.bat`'a çift tıkla 
 
 ## 🧱 Teknik mimari
 - **İstemci:** TypeScript + Three.js (Vite). Karakterler, dünya ve tüm animasyonlar prosedürel; dış model/ses dosyası yok (telif sorunu yok).
-- **Sunucu:** Node.js + `ws`, yetkili (authoritative) oyun mantığı: ekonomi, balık zarı, mangal, sarhoşluk, olaylar sunucuda.
+- **Sunucu:** Cloudflare Workers + Durable Object (`server/worker.ts`) ya da Node.js + `ws` (`server/index.ts`); ortak oyun mantığı `server/hub.ts`, yetkili (authoritative) oyun mantığı: ekonomi, balık zarı, mangal, sarhoşluk, olaylar sunucuda.
 - **Ses:** WebRTC P2P mesh (16 kişiye kadar uygun) + Web Audio PannerNode. TURN için `TURN_URL`, `TURN_USER`, `TURN_PASS` ortam değişkenleri (bazı mobil ağlar için gerekebilir; ücretsiz: metered.ca).
-- **Kayıt:** `DATABASE_URL` varsa PostgreSQL, yoksa `data/db.json`.
+- **Kayıt:** Cloudflare'de Durable Object (SQLite); Node'da `DATABASE_URL` varsa PostgreSQL, yoksa `data/db.json`.
 - **Testler:** `npm run test:server` (44 sunucu testi), `python3 tests/browser_test.py` (iki gerçek tarayıcı + telefon emülasyonu).
 
 ## ⚠️ Bilinen sınırlar (dürüst not)

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { Store } from './store';
+import type { StoreLike as Store } from './hub';
 import { DEFAULT_LOOK, START_COINS, COSMETICS, InvItem, Look, QUESTS, PALETTE, SKIN_TONES, HAIR_COLORS } from '../shared/data';
 
 export interface Profile {
