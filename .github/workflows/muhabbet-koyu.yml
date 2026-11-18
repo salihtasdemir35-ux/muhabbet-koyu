@@ -1,6 +1,6 @@
 # MUHABBET KOYU – tek dosyalık GitHub kurulumu
-# 1) Zip'i depoya yükleyince otomatik açar (dosyaları depoya çıkarır, zip'i siler).
-# 2) Actions > Muhabbet Koyu > Run workflow ile Android APK üretir.
+# Actions > Muhabbet Koyu > Run workflow: önce depodaki zip'i açar (varsa), sonra Android APK üretir.
+# Zip yüklendiğinde de otomatik olarak açılır.
 name: Muhabbet Koyu
 on:
   push:
@@ -10,14 +10,13 @@ permissions:
   contents: write
 jobs:
   zip-ac:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Zip dosyasını aç
         run: |
           Z=$(find . -maxdepth 2 -name "*.zip" -not -path "./.git/*" | head -n1)
-          [ -z "$Z" ] && { echo "Zip bulunamadı"; exit 0; }
+          if [ -z "$Z" ]; then echo "Zip yok (zaten açılmış) – devam"; exit 0; fi
           echo "Açılıyor: $Z"
           mkdir -p /tmp/acilan && unzip -oq "$Z" -d /tmp/acilan
           # zip bir klasör içeriyorsa (package.json alt klasördeyse) içeriğini yukarı al
@@ -31,10 +30,16 @@ jobs:
           git commit -m "Zip açıldı: $(basename "$Z")" || echo "Değişiklik yok"
           git push
   apk:
+    needs: zip-ac
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}   # zip açıldıktan sonraki en güncel hâli al
+      - name: Proje dosyaları var mı?
+        run: |
+          if [ ! -f package.json ]; then echo "::error::package.json yok. Zip açılamadı – MuhabbetKoyu.zip'in depoda olduğundan emin olun."; ls -la; exit 1; fi
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: actions/setup-java@v4
