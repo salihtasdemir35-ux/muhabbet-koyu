@@ -1,0 +1,15 @@
+{
+  "name": "Muhabbet Koyu – Sahilde Muhabbet",
+  "short_name": "Muhabbet Koyu",
+  "description": "Balık bahane, muhabbet şahane! Arkadaşlarınla sanal sahilde buluş.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0b1d29",
+  "theme_color": "#0d4f6c",
+  "lang": "tr",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

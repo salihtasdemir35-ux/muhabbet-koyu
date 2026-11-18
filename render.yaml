@@ -1,0 +1,15 @@
+# Render.com tek tıkla kurulum (Blueprint). Ücretsiz plan.
+services:
+  - type: web
+    name: muhabbet-koyu
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Kalıcı kayıt için (önerilir): Neon/Supabase ücretsiz PostgreSQL bağlantı adresi
+      - key: DATABASE_URL
+        sync: false

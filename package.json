@@ -1,0 +1,32 @@
+{
+  "name": "muhabbet-koyu",
+  "version": "1.0.0",
+  "description": "Muhabbet Koyu – Sahilde Muhabbet: çok oyunculu, sesli sohbetli 3D sahil yaşam simülasyonu",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite --config client/vite.config.ts",
+    "build": "vite build --config client/vite.config.ts",
+    "start": "tsx server/index.ts",
+    "serve": "npm run build && npm start",
+    "test:server": "tsx tests/server.test.ts"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "pg": "^8.23.1",
+    "three": "^0.187.0",
+    "tsx": "^4.23.15",
+    "vite": "^8.3.8",
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "@types/three": "^0.187.0",
+    "@types/ws": "^8.18.2",
+    "typescript": "^7.0.2"
+  }
+}
