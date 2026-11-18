@@ -1,0 +1,65 @@
+# MUHABBET KOYU – tek dosyalık GitHub kurulumu
+# 1) Zip'i depoya yükleyince otomatik açar (dosyaları depoya çıkarır, zip'i siler).
+# 2) Actions > Muhabbet Koyu > Run workflow ile Android APK üretir.
+name: Muhabbet Koyu
+on:
+  push:
+    paths: ['**.zip']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  zip-ac:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip dosyasını aç
+        run: |
+          Z=$(find . -maxdepth 2 -name "*.zip" -not -path "./.git/*" | head -n1)
+          [ -z "$Z" ] && { echo "Zip bulunamadı"; exit 0; }
+          echo "Açılıyor: $Z"
+          mkdir -p /tmp/acilan && unzip -oq "$Z" -d /tmp/acilan
+          # zip bir klasör içeriyorsa (package.json alt klasördeyse) içeriğini yukarı al
+          K=$(dirname "$(find /tmp/acilan -maxdepth 3 -name package.json -not -path "*/node_modules/*" | head -n1)")
+          rm -rf "$K/.github" "$K/node_modules" "$K/dist"
+          cp -r "$K"/. .
+          git rm -q --cached "$Z" || true; rm -f "$Z"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Zip açıldı: $(basename "$Z")" || echo "Değişiklik yok"
+          git push
+  apk:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: Bağımlılıklar
+        run: npm install
+      - name: İstemciyi derle
+        env:
+          VITE_SERVER_URL: ${{ vars.SERVER_URL }}
+        run: npm run build
+      - name: Capacitor Android projesi
+        run: |
+          npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          npx cap init "Muhabbet Koyu" com.muhabbetkoyu.app --web-dir dist
+          npx cap add android
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />#' $M
+          grep -q RECORD_AUDIO $M || sed -i 's#</manifest>#    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n</manifest>#' $M
+          sed -i 's#<activity#<activity android:screenOrientation="sensorLandscape"#' $M
+          for d in android/app/src/main/res/mipmap-*; do cp client/public/icons/icon-192.png $d/ic_launcher.png; cp client/public/icons/icon-192.png $d/ic_launcher_round.png; rm -f $d/ic_launcher_foreground.png; done
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          npx cap sync android
+      - name: APK derle
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MuhabbetKoyu-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
